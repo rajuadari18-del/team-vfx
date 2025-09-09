@@ -6,9 +6,9 @@
   <title>VFX Teams Work Dashboard</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background-color: #121212;
-      color: #ffffff;
+      color: #fff;
       margin: 0;
       padding: 20px;
     }
@@ -19,12 +19,12 @@
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: auto;
-      background-color: #1e1e1e;
+      background-color: #1f1f1f;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 255, 195, 0.3);
+      box-shadow: 0 0 15px rgba(0, 255, 195, 0.3);
     }
 
     form {
@@ -34,11 +34,16 @@
       margin-bottom: 30px;
     }
 
-    input {
+    input, textarea {
       padding: 10px;
       border: none;
       border-radius: 5px;
-      width: calc(50% - 10px);
+      width: 100%;
+      max-width: 300px;
+    }
+
+    textarea {
+      resize: vertical;
     }
 
     button {
@@ -48,22 +53,36 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      height: 44px;
     }
 
     button:hover {
       background-color: #00c9a7;
     }
 
-    canvas {
-      margin-top: 20px;
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 10px;
+    .chart-container {
+      margin-top: 40px;
     }
 
-    .chart-container {
-      position: relative;
-      height: 400px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+
+    th {
+      background-color: #00ffc3;
+      color: #000;
+    }
+
+    td {
+      background-color: #2c2c2c;
     }
   </style>
 </head>
@@ -75,27 +94,44 @@
     <form id="teamForm">
       <input type="text" id="teamName" placeholder="Team Name" required />
       <input type="number" id="workPercentage" placeholder="Work Completed (%)" min="0" max="100" required />
+      <textarea id="workDescription" rows="3" placeholder="What has the team done?" required></textarea>
       <button type="submit">Add Team</button>
     </form>
 
+    <!-- Chart Section -->
     <div class="chart-container">
       <canvas id="workChart"></canvas>
     </div>
+
+    <!-- Table Section -->
+    <table id="teamTable">
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Work Done</th>
+          <th>Completion (%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows inserted by JS -->
+      </tbody>
+    </table>
   </div>
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-    const ctx = document.getElementById('workChart').getContext('2d');
     const teamLabels = [];
     const workData = [];
 
+    const ctx = document.getElementById('workChart').getContext('2d');
     const workChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: teamLabels,
         datasets: [{
-          label: 'Work Completed (%)',
+          label: 'Completion %',
           data: workData,
           backgroundColor: 'rgba(0, 255, 195, 0.6)',
           borderColor: 'rgba(0, 255, 195, 1)',
@@ -106,54 +142,56 @@
         responsive: true,
         plugins: {
           legend: {
-            labels: {
-              color: '#ffffff'
-            }
+            labels: { color: '#fff' }
           },
           title: {
             display: true,
-            text: 'VFX Team Work Progress',
-            color: '#ffffff',
-            font: {
-              size: 18
-            }
+            text: 'Work Completion by VFX Teams',
+            color: '#fff',
+            font: { size: 18 }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
             max: 100,
-            ticks: {
-              color: '#ffffff'
-            },
-            grid: {
-              color: '#333'
-            }
+            ticks: { color: '#fff' },
+            grid: { color: '#444' }
           },
           x: {
-            ticks: {
-              color: '#ffffff'
-            },
-            grid: {
-              color: '#333'
-            }
+            ticks: { color: '#fff' },
+            grid: { color: '#444' }
           }
         }
       }
     });
 
     const teamForm = document.getElementById('teamForm');
-    teamForm.addEventListener('submit', function(event) {
-      event.preventDefault();
+    const teamTable = document.querySelector('#teamTable tbody');
+
+    teamForm.addEventListener('submit', function (e) {
+      e.preventDefault();
 
       const name = document.getElementById('teamName').value.trim();
       const percentage = parseFloat(document.getElementById('workPercentage').value.trim());
+      const description = document.getElementById('workDescription').value.trim();
 
-      if (name && !isNaN(percentage) && percentage >= 0 && percentage <= 100) {
+      if (name && !isNaN(percentage) && description) {
+        // Add to Chart
         teamLabels.push(name);
         workData.push(percentage);
         workChart.update();
 
+        // Add to Table
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${name}</td>
+          <td>${description}</td>
+          <td>${percentage}%</td>
+        `;
+        teamTable.appendChild(row);
+
+        // Reset form
         teamForm.reset();
       }
     });
