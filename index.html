@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VFX Teams Work Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ffc3;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background-color: #1e1e1e;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 255, 195, 0.3);
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    input {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: calc(50% - 10px);
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #00ffc3;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00c9a7;
+    }
+
+    canvas {
+      margin-top: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>VFX Teams Work Progress Dashboard</h1>
+
+  <div class="container">
+    <form id="teamForm">
+      <input type="text" id="teamName" placeholder="Team Name" required />
+      <input type="number" id="workPercentage" placeholder="Work Completed (%)" min="0" max="100" required />
+      <button type="submit">Add Team</button>
+    </form>
+
+    <div class="chart-container">
+      <canvas id="workChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('workChart').getContext('2d');
+    const teamLabels = [];
+    const workData = [];
+
+    const workChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: teamLabels,
+        datasets: [{
+          label: 'Work Completed (%)',
+          data: workData,
+          backgroundColor: 'rgba(0, 255, 195, 0.6)',
+          borderColor: 'rgba(0, 255, 195, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff'
+            }
+          },
+          title: {
+            display: true,
+            text: 'VFX Team Work Progress',
+            color: '#ffffff',
+            font: {
+              size: 18
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              color: '#ffffff'
+            },
+            grid: {
+              color: '#333'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#ffffff'
+            },
+            grid: {
+              color: '#333'
+            }
+          }
+        }
+      }
+    });
+
+    const teamForm = document.getElementById('teamForm');
+    teamForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('teamName').value.trim();
+      const percentage = parseFloat(document.getElementById('workPercentage').value.trim());
+
+      if (name && !isNaN(percentage) && percentage >= 0 && percentage <= 100) {
+        teamLabels.push(name);
+        workData.push(percentage);
+        workChart.update();
+
+        teamForm.reset();
+      }
+    });
+  </script>
+</body>
+</html>
