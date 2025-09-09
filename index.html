@@ -7,26 +7,26 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-      color: #ffffff;
+      background: linear-gradient(to right, #1e1e2f, #111119);
+      color: #fff;
       margin: 0;
       padding: 20px;
     }
 
     h1 {
       text-align: center;
-      color: #00ffd5;
+      color: #00ffcc;
       margin-bottom: 30px;
-      text-shadow: 0 0 5px #00ffd5;
+      text-shadow: 0 0 8px #00ffc3;
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: auto;
-      background-color: #1e1e1e;
+      background-color: #222;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 255, 213, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.2);
     }
 
     form {
@@ -37,33 +37,39 @@
       justify-content: space-between;
     }
 
-    input, textarea {
+    input, textarea, select {
       padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       width: 100%;
-      max-width: 360px;
-      background-color: #2c2c2c;
+      max-width: 300px;
+      background-color: #2c2c3c;
       color: #fff;
     }
 
     textarea {
       resize: vertical;
+      min-height: 60px;
+    }
+
+    input[type="file"] {
+      background-color: #2c2c3c;
     }
 
     button {
       padding: 12px 24px;
-      background: linear-gradient(to right, #00ffd5, #00b8ff);
+      background: linear-gradient(to right, #00ffc3, #00b8ff);
       color: #000;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       transition: background 0.3s ease;
       font-weight: bold;
+      height: 44px;
     }
 
     button:hover {
-      background: linear-gradient(to right, #00b8ff, #00ffd5);
+      background: linear-gradient(to right, #00b8ff, #00ffc3);
     }
 
     .charts {
@@ -76,7 +82,7 @@
 
     .chart-box {
       flex: 1 1 45%;
-      background-color: #2a2a2a;
+      background-color: #2a2a3a;
       border-radius: 10px;
       padding: 20px;
     }
@@ -94,17 +100,27 @@
 
     th, td {
       padding: 14px;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #444;
       text-align: left;
     }
 
     th {
-      background-color: #00ffd5;
+      background-color: #00ffc3;
       color: #000;
     }
 
     td {
       background-color: #2c2c2c;
+    }
+
+    a.view-file {
+      color: #00b8ff;
+      text-decoration: underline;
+    }
+
+    .work-icon {
+      font-size: 1.4em;
+      margin-right: 8px;
     }
 
     @media (max-width: 768px) {
@@ -117,7 +133,7 @@
         align-items: stretch;
       }
 
-      input, textarea {
+      input, textarea, select {
         max-width: 100%;
       }
 
@@ -129,73 +145,84 @@
 </head>
 <body>
 
-  <h1>VFX Members Work Progress Dashboard</h1>
+  <h1>🎬 VFX Members Advanced Dashboard</h1>
 
   <div class="container">
     <form id="memberForm">
       <input type="text" id="memberName" placeholder="Member Name" required />
       <input type="number" id="workPercentage" placeholder="Work Completed (%)" min="0" max="100" required />
-      <textarea id="workDescription" rows="3" placeholder="What has the member done?" required></textarea>
+      
+      <select id="workType" required>
+        <option value="">Select Work Type</option>
+        <option value="🎨 Compositing">🎨 Compositing</option>
+        <option value="🧱 Modeling">🧱 Modeling</option>
+        <option value="🔥 Simulation">🔥 Simulation</option>
+        <option value="💡 Lighting">💡 Lighting</option>
+        <option value="📸 Rotoscoping">📸 Rotoscoping</option>
+      </select>
+
+      <textarea id="workDescription" placeholder="What has the member done?" required></textarea>
+      <input type="file" id="workFile" accept=".jpg,.png,.mp4,.mov,.pdf" required />
       <button type="submit">Add Member</button>
     </form>
 
-    <!-- Chart Section -->
+    <!-- Charts -->
     <div class="charts">
       <div class="chart-box">
-        <h3 style="color: #00ffd5; text-align:center;">Bar Chart</h3>
+        <h3 style="text-align:center; color:#00ffc3;">Bar Chart</h3>
         <canvas id="barChart"></canvas>
       </div>
       <div class="chart-box">
-        <h3 style="color: #00ffd5; text-align:center;">Pie Chart</h3>
+        <h3 style="text-align:center; color:#00ffc3;">Pie Chart</h3>
         <canvas id="pieChart"></canvas>
       </div>
     </div>
 
-    <!-- Table Section -->
-    <table id="memberTable">
+    <!-- Table -->
+    <table>
       <thead>
         <tr>
           <th>Member Name</th>
-          <th>Work Done</th>
-          <th>Completion (%)</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Progress</th>
+          <th>Submission</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Dynamic rows go here -->
+      <tbody id="memberTableBody">
+        <!-- Dynamic rows -->
       </tbody>
     </table>
   </div>
 
-  <!-- Chart.js CDN -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    const memberForm = document.getElementById('memberForm');
-    const memberTable = document.querySelector('#memberTable tbody');
+    const form = document.getElementById('memberForm');
+    const tableBody = document.getElementById('memberTableBody');
 
-    const memberLabels = [];
-    const workData = [];
+    const labels = [];
+    const percentages = [];
 
-    // Bar chart
     const barCtx = document.getElementById('barChart').getContext('2d');
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+
     const barChart = new Chart(barCtx, {
       type: 'bar',
       data: {
-        labels: memberLabels,
+        labels: labels,
         datasets: [{
           label: 'Completion %',
-          data: workData,
-          backgroundColor: 'rgba(0, 255, 213, 0.7)',
-          borderColor: '#00ffd5',
+          data: percentages,
+          backgroundColor: 'rgba(0, 255, 195, 0.7)',
+          borderColor: '#00ffc3',
           borderWidth: 2
         }]
       },
       options: {
         plugins: {
-          legend: { labels: { color: '#fff' } },
-          title: {
-            display: false
-          }
+          legend: { labels: { color: '#fff' } }
         },
         scales: {
           y: {
@@ -212,17 +239,14 @@
       }
     });
 
-    // Pie chart
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
     const pieChart = new Chart(pieCtx, {
       type: 'pie',
       data: {
-        labels: memberLabels,
+        labels: labels,
         datasets: [{
-          label: 'Work Distribution',
-          data: workData,
+          data: percentages,
           backgroundColor: [
-            '#00ffd5', '#00b8ff', '#ff6ec7', '#ffd500', '#ff5e57', '#6c5ce7', '#a29bfe', '#e17055'
+            '#00ffc3', '#ff6ec7', '#ffb74d', '#81d4fa', '#a29bfe', '#e17055', '#00b8ff'
           ],
           borderColor: '#1e1e1e',
           borderWidth: 2
@@ -230,41 +254,36 @@
       },
       options: {
         plugins: {
-          legend: { labels: { color: '#fff' } },
-          title: {
-            display: false
-          }
+          legend: { labels: { color: '#fff' } }
         }
       }
     });
 
-    memberForm.addEventListener('submit', function (e) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
 
       const name = document.getElementById('memberName').value.trim();
       const percentage = parseFloat(document.getElementById('workPercentage').value.trim());
+      const workType = document.getElementById('workType').value;
       const description = document.getElementById('workDescription').value.trim();
+      const fileInput = document.getElementById('workFile');
 
-      if (name && !isNaN(percentage) && description) {
-        // Update data arrays
-        memberLabels.push(name);
-        workData.push(percentage);
-        barChart.update();
-        pieChart.update();
+      if (!name || isNaN(percentage) || !workType || !description || !fileInput.files.length) return;
 
-        // Add to table
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${name}</td>
-          <td>${description}</td>
-          <td>${percentage}%</td>
-        `;
-        memberTable.appendChild(row);
+      const file = fileInput.files[0];
+      const fileURL = URL.createObjectURL(file);
 
-        // Reset form
-        memberForm.reset();
-      }
-    });
-  </script>
-</body>
-</html>
+      // Update Charts
+      labels.push(name);
+      percentages.push(percentage);
+      barChart.update();
+      pieChart.update();
+
+      // Add to Table
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${name}</td>
+        <td><span class="work-icon">${workType}</span></td>
+        <td>${description}</td>
+        <td>${percentage}%</td>
+       
